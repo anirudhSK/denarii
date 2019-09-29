@@ -8,3 +8,8 @@ edition = "2018"
 
 [dependencies]
 rand = "0.7.2"
+gurobi = "0.3.3"
+
+[[bin]]
+name = "mip"
+path = "src/mip.rs"
