@@ -1,5 +1,8 @@
 pub use std::os::raw::{c_int, c_double, c_char, c_void};
+pub type c_str = *const c_char;
 
+use std::ptr;
+use std::ffi::CString;
 
 #[repr(C)]
 pub struct GRBenv;
@@ -63,4 +66,10 @@ extern "C" {
 
   // Write to file
   pub fn GRBwrite(model: *mut GRBmodel, filename: c_str) -> c_int;
+}
+
+fn main() {
+  let mut env : *mut GRBenv = ptr::null_mut();
+  let c_ptr: *const c_char = CString::new("mip1.log").unwrap().as_ptr();
+  let x = unsafe { GRBloadenv(&mut env, c_ptr)};
 }
