@@ -40,21 +40,30 @@ main(int   argc,
 
   /* Add variables */
 
-  error = GRBaddvar(model, 0, NULL, NULL, 1, 0.0, GRB_INFINITY,
+  error = GRBaddvar(model, 0, NULL, NULL, 0, 0.0, GRB_INFINITY,
                     GRB_BINARY, "var1");
   if (error) goto QUIT;
 
-  error = GRBaddvar(model, 0, NULL, NULL, 1, 0.0, GRB_INFINITY,
+  error = GRBaddvar(model, 0, NULL, NULL, 0, 0.0, GRB_INFINITY,
                     GRB_BINARY, "var2");
   if (error) goto QUIT;
 
-  error = GRBaddvar(model, 0, NULL, NULL, 2, 0.0, GRB_INFINITY,
+  error = GRBaddvar(model, 0, NULL, NULL, 0, 0.0, GRB_INFINITY,
                     GRB_BINARY, "var3");
   if (error) goto QUIT;
 
   /* Change objective sense to maximization */
 
   error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
+  if (error) goto QUIT;
+
+  /* Objective as a constraint: x + y + 2z - obj == 0 */
+  error = GRBaddvar(model, 0, NULL, NULL, 1, 0.0, GRB_INFINITY,
+                    GRB_INTEGER, "var4");
+  if (error) goto QUIT;
+  ind[0] = 0; ind[1] = 1; ind[2] = 2; ind[3] = 3;
+  val[0] = 1; val[1] = 1; val[2] = 2; val[3] = -1;
+  error = GRBaddconstr(model, 4, ind, val, GRB_EQUAL, 0.0, "cequal");
   if (error) goto QUIT;
 
   /* First constraint: x + 2 y + 3 z <= 4 */
