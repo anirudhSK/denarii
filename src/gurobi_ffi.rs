@@ -4,11 +4,9 @@ pub type c_str = *const c_char;
 use std::ptr;
 use std::ffi::CString;
 
-#[repr(C)]
-pub struct GRBenv;
+pub enum GRBenv {}
 
-#[repr(C)]
-pub struct GRBmodel;
+pub enum GRBmodel {}
 
 #[repr(C)]
 pub struct GRBsvec {
