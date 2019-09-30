@@ -19,11 +19,11 @@ main(int   argc,
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
   int       error = 0;
-  double    sol[3];
-  int       ind[3];
-  double    val[3];
-  double    obj[3];
-  char      vtype[3];
+  double    sol[4];
+  int       ind[4];
+  double    val[4];
+  double    obj[4];
+  char      vtype[4];
   int       optimstatus;
   double    objval;
 
