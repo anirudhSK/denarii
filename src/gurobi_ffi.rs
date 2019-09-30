@@ -68,6 +68,7 @@ extern "C" {
 
 fn main() {
   let mut env : *mut GRBenv = ptr::null_mut();
-  let c_ptr: *const c_char = CString::new("mip1.log").unwrap().as_ptr();
+  let file_name = CString::new("mip1.log").expect("CString::new failed");
+  let c_ptr = file_name.as_ptr();
   let x = unsafe { GRBloadenv(&mut env, c_ptr)};
 }
