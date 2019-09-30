@@ -40,10 +40,16 @@ main(int   argc,
 
   /* Add variables */
 
-  obj[0] = 1; obj[1] = 1; obj[2] = 2;
-  vtype[0] = GRB_BINARY; vtype[1] = GRB_BINARY; vtype[2] = GRB_BINARY;
-  error = GRBaddvars(model, 3, 0, NULL, NULL, NULL, obj, NULL, NULL, vtype,
-                     NULL);
+  error = GRBaddvar(model, 0, NULL, NULL, 1, 0.0, GRB_INFINITY,
+                    GRB_BINARY, "var1");
+  if (error) goto QUIT;
+
+  error = GRBaddvar(model, 0, NULL, NULL, 1, 0.0, GRB_INFINITY,
+                    GRB_BINARY, "var2");
+  if (error) goto QUIT;
+
+  error = GRBaddvar(model, 0, NULL, NULL, 2, 0.0, GRB_INFINITY,
+                    GRB_BINARY, "var3");
   if (error) goto QUIT;
 
   /* Change objective sense to maximization */
