@@ -4,6 +4,7 @@ pub type c_str = *const c_char;
 use std::ptr;
 use std::ffi::CString;
 use std::convert::TryInto;
+use std::collections::HashMap;
 
 pub enum GRBenv {}
 
@@ -69,12 +70,17 @@ extern "C" {
 
 struct GurobiOptimizer {
   env   : *mut GRBenv,
-  model : *mut GRBmodel
+  model : *mut GRBmodel,
+  vars  : HashMap<String, i32>,
+  var_index : i32
 }
 
 impl GurobiOptimizer {
   pub fn new(name : &str) -> GurobiOptimizer {
-    let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),  model : ptr::null_mut() };
+    let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),
+                                         model : ptr::null_mut(),
+                                         vars  : HashMap::new(),
+                                         var_index : 0};
     let log_file_c_str   = CString::new(name.to_owned() + ".log").expect("CString::new failed");
     let log_file_c_ptr   = log_file_c_str.as_ptr();
     let model_name_c_str = CString::new(name).expect("CString::new failed");
@@ -94,19 +100,25 @@ impl GurobiOptimizer {
       let coeff = is_objective as i8 as f64;
       GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, var_name_c_ptr);
     }
+    self.vars.insert(var_name.to_owned(), self.var_index);
+    self.var_index += 1;
   }
   pub fn add_constraint(&mut self,
-                        lhs_vars : &Vec<(i32)>,
+                        lhs_vars : &Vec<(&str)>,
                         lhs_coeffs : &Vec<f64>,
                         sense : c_char,
                         rhs : f64,
                         constraint_name : &str) {
+    let mut lhs_idxs = Vec::new();
+    for var_name in lhs_vars {
+      lhs_idxs.push(self.vars.get::<str>(var_name).unwrap().to_owned());
+    }
     assert!(['<' as c_char, '>' as c_char, '=' as c_char].contains(&sense));
     let constraint_name_c_str = CString::new(constraint_name).expect("CString::new failed");
     let constraint_name_c_ptr = constraint_name_c_str.as_ptr();
-    assert!(lhs_vars.len() == lhs_coeffs.len());
+    assert!(lhs_idxs.len() == lhs_coeffs.len());
     unsafe {
-      GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
+      GRBaddconstr(self.model, lhs_idxs.len().try_into().unwrap(), lhs_idxs.as_ptr(),
                    lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr);
     }
   }
@@ -138,8 +150,8 @@ fn main() {
   optimizer.add_var("y", 'B', false);
   optimizer.add_var("z", 'B', false);
   optimizer.add_var("obj", 'I', true);
-  optimizer.add_constraint(&vec![0, 1, 2, 3], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
-  optimizer.add_constraint(&vec![0, 1, 2], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
-  optimizer.add_constraint(&vec![0, 1], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+  optimizer.add_constraint(&vec!["x", "y", "z", "obj"], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
+  optimizer.add_constraint(&vec!["x", "y", "z"], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
+  optimizer.add_constraint(&vec!["x", "y"], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
   optimizer.optimize("max");
 }
