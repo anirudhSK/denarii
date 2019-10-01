@@ -85,11 +85,12 @@ impl GurobiOptimizer {
     }
     return optimizer;
   }
-  pub fn add_var(&mut self, var_name : &str) {
+  pub fn add_var(&mut self, var_name : &str, var_type : char) {
+    assert!(['C', 'B', 'I'].contains(&var_type), "var_type must be C (real), B (binary), or I (integer)");
     let var_name_c_str = CString::new(var_name).expect("CString::new failed");
     let var_name_c_ptr = var_name_c_str.as_ptr();
     unsafe {
-      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, 'B' as i8, var_name_c_ptr);
+      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, var_type as i8, var_name_c_ptr);
     }
   }
   pub fn optimize(&mut self) {
@@ -101,6 +102,6 @@ impl GurobiOptimizer {
 
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
-  optimizer.add_var("var1");
+  optimizer.add_var("var1", 'B');
   optimizer.optimize();
 }
