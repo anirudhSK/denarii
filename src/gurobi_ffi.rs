@@ -6,6 +6,8 @@ use std::ffi::CString;
 use std::convert::TryInto;
 use std::collections::HashMap;
 
+type GurobiVar = i32;
+
 pub enum GRBenv {}
 
 pub enum GRBmodel {}
@@ -92,7 +94,7 @@ impl GurobiOptimizer {
     }
     return optimizer;
   }
-  pub fn add_var(&mut self, var_name : &str, var_type : char, is_objective : bool) {
+  pub fn add_var(&mut self, var_name : &str, var_type : char, is_objective : bool) -> i32 {
     assert!(['C', 'B', 'I'].contains(&var_type), "var_type must be C (real), B (binary), or I (integer)");
     let var_name_c_str = CString::new(var_name).expect("CString::new failed");
     let var_name_c_ptr = var_name_c_str.as_ptr();
@@ -102,23 +104,20 @@ impl GurobiOptimizer {
     }
     self.vars.insert(var_name.to_owned(), self.var_index);
     self.var_index += 1;
+    return self.var_index - 1; // return newly created index.
   }
   pub fn add_constraint(&mut self,
-                        lhs_vars : &Vec<(&str)>,
+                        lhs_vars   : &Vec<(GurobiVar)>,
                         lhs_coeffs : &Vec<f64>,
                         sense : c_char,
                         rhs : f64,
                         constraint_name : &str) {
-    let mut lhs_idxs = Vec::new();
-    for var_name in lhs_vars {
-      lhs_idxs.push(self.vars.get::<str>(var_name).unwrap().to_owned());
-    }
     assert!(['<' as c_char, '>' as c_char, '=' as c_char].contains(&sense));
     let constraint_name_c_str = CString::new(constraint_name).expect("CString::new failed");
     let constraint_name_c_ptr = constraint_name_c_str.as_ptr();
-    assert!(lhs_idxs.len() == lhs_coeffs.len());
+    assert!(lhs_vars.len() == lhs_coeffs.len());
     unsafe {
-      GRBaddconstr(self.model, lhs_idxs.len().try_into().unwrap(), lhs_idxs.as_ptr(),
+      GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
                    lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr);
     }
   }
@@ -146,12 +145,12 @@ impl Drop for GurobiOptimizer {
 
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
-  optimizer.add_var("x", 'B', false);
-  optimizer.add_var("y", 'B', false);
-  optimizer.add_var("z", 'B', false);
-  optimizer.add_var("obj", 'I', true);
-  optimizer.add_constraint(&vec!["x", "y", "z", "obj"], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
-  optimizer.add_constraint(&vec!["x", "y", "z"], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
-  optimizer.add_constraint(&vec!["x", "y"], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+  let x = optimizer.add_var("x", 'B', false);
+  let y = optimizer.add_var("y", 'B', false);
+  let z = optimizer.add_var("z", 'B', false);
+  let obj = optimizer.add_var("obj", 'I', true);
+  optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
+  optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
+  optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
   optimizer.optimize("max");
 }
