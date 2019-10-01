@@ -70,5 +70,17 @@ fn main() {
   let mut env : *mut GRBenv = ptr::null_mut();
   let file_name = CString::new("mip1.log").expect("CString::new failed");
   let c_ptr = file_name.as_ptr();
-  let x = unsafe { GRBloadenv(&mut env, c_ptr)};
+  unsafe {
+    let mut model : *mut GRBmodel = ptr::null_mut();
+    let model_name = CString::new("mip1").expect("CString::new failed");
+    let model_name_ptr = model_name.as_ptr();
+    GRBloadenv(&mut env, c_ptr);
+    GRBnewmodel(env, &mut model, model_name_ptr, 0, ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut());
+
+    let var_name = CString::new("var1").expect("CString::new failed");
+    let var_name_ptr = var_name.as_ptr();
+    GRBaddvar(model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, 'B' as i8, var_name_ptr);
+    // TODO: Missing several more statements.
+    GRBoptimize(model);
+  };
 }
