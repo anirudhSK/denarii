@@ -3,6 +3,7 @@ pub type c_str = *const c_char;
 
 use std::ptr;
 use std::ffi::CString;
+use std::convert::TryInto;
 
 pub enum GRBenv {}
 
@@ -85,16 +86,37 @@ impl GurobiOptimizer {
     }
     return optimizer;
   }
-  pub fn add_var(&mut self, var_name : &str, var_type : char) {
+  pub fn add_var(&mut self, var_name : &str, var_type : char, is_objective : bool) {
     assert!(['C', 'B', 'I'].contains(&var_type), "var_type must be C (real), B (binary), or I (integer)");
     let var_name_c_str = CString::new(var_name).expect("CString::new failed");
     let var_name_c_ptr = var_name_c_str.as_ptr();
     unsafe {
-      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, var_type as i8, var_name_c_ptr);
+      let coeff = is_objective as i8 as f64;
+      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, var_name_c_ptr);
     }
   }
-  pub fn optimize(&mut self) {
+  pub fn add_constraint(&mut self,
+                        lhs_vars : &Vec<(i32)>,
+                        lhs_coeffs : &Vec<f64>,
+                        sense : c_char,
+                        rhs : f64,
+                        constraint_name : &str) {
+    assert!(['<' as c_char, '>' as c_char, '=' as c_char].contains(&sense));
+    let constraint_name_c_str = CString::new(constraint_name).expect("CString::new failed");
+    let constraint_name_c_ptr = constraint_name_c_str.as_ptr();
+    assert!(lhs_vars.len() == lhs_coeffs.len());
     unsafe {
+      GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
+                   lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr);
+    }
+  }
+  pub fn optimize(&mut self, sense : &str) {
+    assert!(["max", "min"].contains(&sense));
+    let sense_int = if sense == "min" {1} else {-1};
+    let model_sense_c_str = CString::new("ModelSense").expect("Cstring::new failed");
+    let model_sense_c_ptr  = model_sense_c_str.as_ptr();
+    unsafe {
+      GRBsetintattr(self.model, model_sense_c_ptr, sense_int);
       GRBoptimize(self.model);
     }
   }
@@ -102,6 +124,12 @@ impl GurobiOptimizer {
 
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
-  optimizer.add_var("var1", 'B');
-  optimizer.optimize();
+  optimizer.add_var("x", 'B', false);
+  optimizer.add_var("y", 'B', false);
+  optimizer.add_var("z", 'B', false);
+  optimizer.add_var("obj", 'I', true);
+  optimizer.add_constraint(&vec![0, 1, 2, 3], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
+  optimizer.add_constraint(&vec![0, 1, 2], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
+  optimizer.add_constraint(&vec![0, 1], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+  optimizer.optimize("max");
 }
