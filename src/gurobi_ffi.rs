@@ -66,21 +66,41 @@ extern "C" {
   pub fn GRBwrite(model: *mut GRBmodel, filename: c_str) -> c_int;
 }
 
-fn main() {
-  let mut env : *mut GRBenv = ptr::null_mut();
-  let file_name = CString::new("mip1.log").expect("CString::new failed");
-  let c_ptr = file_name.as_ptr();
-  unsafe {
-    let mut model : *mut GRBmodel = ptr::null_mut();
-    let model_name = CString::new("mip1").expect("CString::new failed");
-    let model_name_ptr = model_name.as_ptr();
-    GRBloadenv(&mut env, c_ptr);
-    GRBnewmodel(env, &mut model, model_name_ptr, 0, ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut());
+struct GurobiOptimizer {
+  env   : *mut GRBenv,
+  model : *mut GRBmodel
+}
 
-    let var_name = CString::new("var1").expect("CString::new failed");
-    let var_name_ptr = var_name.as_ptr();
-    GRBaddvar(model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, 'B' as i8, var_name_ptr);
-    // TODO: Missing several more statements.
-    GRBoptimize(model);
-  };
+impl GurobiOptimizer {
+  pub fn new(name : &str) -> GurobiOptimizer {
+    let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),  model : ptr::null_mut() };
+    let log_file_c_str   = CString::new(name.to_owned() + ".log").expect("CString::new failed");
+    let log_file_c_ptr   = log_file_c_str.as_ptr();
+    let model_name_c_str = CString::new(name).expect("CString::new failed");
+    let model_name_c_ptr = model_name_c_str.as_ptr();
+    unsafe {
+      GRBloadenv(&mut optimizer.env, log_file_c_ptr);
+      GRBnewmodel(optimizer.env, &mut optimizer.model, model_name_c_ptr, 0, ptr::null_mut(),
+                  ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut());
+    }
+    return optimizer;
+  }
+  pub fn add_var(&mut self, var_name : &str) {
+    let var_name_c_str = CString::new(var_name).expect("CString::new failed");
+    let var_name_c_ptr = var_name_c_str.as_ptr();
+    unsafe {
+      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), 0.0, 0.0, 1e100, 'B' as i8, var_name_c_ptr);
+    }
+  }
+  pub fn optimize(&mut self) {
+    unsafe {
+      GRBoptimize(self.model);
+    }
+  }
+}
+
+fn main() {
+  let mut optimizer = GurobiOptimizer::new("mip1");
+  optimizer.add_var("var1");
+  optimizer.optimize();
 }
