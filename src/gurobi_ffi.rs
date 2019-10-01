@@ -122,6 +122,16 @@ impl GurobiOptimizer {
   }
 }
 
+impl Drop for GurobiOptimizer {
+  fn drop(&mut self) {
+    unsafe {
+      GRBfreemodel(self.model);
+      GRBfreeenv(self.env);
+    }
+    println!("Dropping model and environment in GurobiOptimizer's destructor.\n");
+  }
+}
+
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
   optimizer.add_var("x", 'B', false);
