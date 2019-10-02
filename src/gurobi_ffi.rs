@@ -5,6 +5,7 @@ use std::ptr;
 use std::ffi::CString;
 use std::ffi::CStr;
 use std::convert::TryInto;
+use std::collections::HashMap;
 
 type GurobiVar = i32;
 
@@ -73,7 +74,8 @@ struct GurobiOptimizer {
   env   : *mut GRBenv,
   model : *mut GRBmodel,
   var_index : i32,
-  vars  : Vec<GurobiVar>
+  vars  : Vec<GurobiVar>,
+  solutions : HashMap<GurobiVar, f64>
 }
 
 impl GurobiOptimizer {
@@ -81,7 +83,8 @@ impl GurobiOptimizer {
     let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),
                                          model : ptr::null_mut(),
                                          var_index : 0,
-                                         vars : Vec::new()};
+                                         vars : Vec::new(),
+                                         solutions : HashMap::new()};
     let log_file_c_str   = CString::new(name.to_owned() + ".log").expect("CString::new failed");
     let log_file_c_ptr   = log_file_c_str.as_ptr();
     let model_name_c_str = CString::new(name).expect("CString::new failed");
@@ -126,13 +129,16 @@ impl GurobiOptimizer {
     unsafe {
       GRBsetintattr(self.model, model_sense_c_ptr, sense_int);
       GRBoptimize(self.model);
+      for var in self.vars.clone() {
+        self.solutions.insert(var.to_owned(), self.get_solution(&var));
+      }
     }
   }
-  pub fn get_solution(&mut self, var : GurobiVar) -> f64 {
+  fn get_solution(&self, var : &GurobiVar) -> f64 {
     let x_str = CString::new("X").expect("CString::new failed");
     let mut x : f64 = 0.0;
     unsafe {
-      let error : i32 = GRBgetdblattrelement(self.model, x_str.as_ptr(), var, &mut x as *mut f64);
+      let error : i32 = GRBgetdblattrelement(self.model, x_str.as_ptr(), *var, &mut x as *mut f64);
       if error != 0 {
         panic!("error is {}", CStr::from_ptr(GRBgeterrormsg(self.env)).to_str().unwrap());
       }
@@ -161,5 +167,8 @@ fn main() {
   optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
   optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
   optimizer.optimize("max");
-  println!("x={}, y={}, z={}", optimizer.get_solution(x), optimizer.get_solution(y), optimizer.get_solution(z));
+  println!("x={}, y={}, z={}",
+            optimizer.solutions.get(&x).unwrap(),
+            optimizer.solutions.get(&y).unwrap(),
+            optimizer.solutions.get(&z).unwrap());
 }
