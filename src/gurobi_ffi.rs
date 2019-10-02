@@ -5,7 +5,6 @@ use std::ptr;
 use std::ffi::CString;
 use std::ffi::CStr;
 use std::convert::TryInto;
-use std::collections::HashMap;
 
 type GurobiVar = i32;
 
@@ -73,7 +72,6 @@ extern "C" {
 struct GurobiOptimizer {
   env   : *mut GRBenv,
   model : *mut GRBmodel,
-  vars  : HashMap<String, i32>,
   var_index : i32
 }
 
@@ -81,7 +79,6 @@ impl GurobiOptimizer {
   pub fn new(name : &str) -> GurobiOptimizer {
     let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),
                                          model : ptr::null_mut(),
-                                         vars  : HashMap::new(),
                                          var_index : 0};
     let log_file_c_str   = CString::new(name.to_owned() + ".log").expect("CString::new failed");
     let log_file_c_ptr   = log_file_c_str.as_ptr();
@@ -94,15 +91,12 @@ impl GurobiOptimizer {
     }
     return optimizer;
   }
-  pub fn add_var(&mut self, var_name : &str, var_type : char, is_objective : bool) -> i32 {
+  pub fn add_var(&mut self, var_type : char, is_objective : bool) -> GurobiVar {
     assert!(['C', 'B', 'I'].contains(&var_type), "var_type must be C (real), B (binary), or I (integer)");
-    let var_name_c_str = CString::new(var_name).expect("CString::new failed");
-    let var_name_c_ptr = var_name_c_str.as_ptr();
     unsafe {
       let coeff = is_objective as i8 as f64;
-      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, var_name_c_ptr);
+      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, ptr::null());
     }
-    self.vars.insert(var_name.to_owned(), self.var_index);
     self.var_index += 1;
     return self.var_index - 1; // return newly created index.
   }
@@ -156,10 +150,10 @@ impl Drop for GurobiOptimizer {
 
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
-  let x = optimizer.add_var("x", 'B', false);
-  let y = optimizer.add_var("y", 'B', false);
-  let z = optimizer.add_var("z", 'B', false);
-  let obj = optimizer.add_var("obj", 'I', true);
+  let x = optimizer.add_var('B', false);
+  let y = optimizer.add_var('B', false);
+  let z = optimizer.add_var('B', false);
+  let obj = optimizer.add_var('I', true);
   optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
   optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
   optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
