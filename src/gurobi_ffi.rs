@@ -3,6 +3,7 @@ pub type c_str = *const c_char;
 
 use std::ptr;
 use std::ffi::CString;
+use std::ffi::CStr;
 use std::convert::TryInto;
 use std::collections::HashMap;
 
@@ -61,8 +62,7 @@ extern "C" {
 
   pub fn GRBgetintattr(model: *mut GRBmodel, attrname: c_str, valueP: *mut c_int) -> c_int;
 
-  pub fn GRBgetdblattrarray(model: *mut GRBmodel, attrname: c_str, first: c_int, len: c_int, values: *mut c_double)
-                            -> c_int;
+  pub fn GRBgetdblattrelement(model: *mut GRBmodel, attrname: c_str, element: c_int, valueP: *mut c_double) -> c_int;
 
   pub fn GRBsetintattr(model: *mut GRBmodel, attrname: c_str, value: c_int) -> c_int;
 
@@ -124,12 +124,23 @@ impl GurobiOptimizer {
   pub fn optimize(&mut self, sense : &str) {
     assert!(["max", "min"].contains(&sense));
     let sense_int = if sense == "min" {1} else {-1};
-    let model_sense_c_str = CString::new("ModelSense").expect("Cstring::new failed");
+    let model_sense_c_str = CString::new("ModelSense").expect("CString::new failed");
     let model_sense_c_ptr  = model_sense_c_str.as_ptr();
     unsafe {
       GRBsetintattr(self.model, model_sense_c_ptr, sense_int);
       GRBoptimize(self.model);
     }
+  }
+  pub fn get_solution(&mut self, var : GurobiVar) -> f64 {
+    let x_str = CString::new("X").expect("CString::new failed");
+    let mut x : f64 = 0.0;
+    unsafe {
+      let error : i32 = GRBgetdblattrelement(self.model, x_str.as_ptr(), var, &mut x as *mut f64);
+      if error != 0 {
+        panic!("error is {}", CStr::from_ptr(GRBgeterrormsg(self.env)).to_str().unwrap());
+      }
+    }
+    return x;
   }
 }
 
@@ -153,4 +164,5 @@ fn main() {
   optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
   optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
   optimizer.optimize("max");
+  println!("x={}, y={}, z={}", optimizer.get_solution(x), optimizer.get_solution(y), optimizer.get_solution(z));
 }
