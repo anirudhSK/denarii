@@ -72,14 +72,16 @@ extern "C" {
 struct GurobiOptimizer {
   env   : *mut GRBenv,
   model : *mut GRBmodel,
-  var_index : i32
+  var_index : i32,
+  vars  : Vec<GurobiVar>
 }
 
 impl GurobiOptimizer {
   pub fn new(name : &str) -> GurobiOptimizer {
     let mut optimizer = GurobiOptimizer{ env : ptr::null_mut(),
                                          model : ptr::null_mut(),
-                                         var_index : 0};
+                                         var_index : 0,
+                                         vars : Vec::new()};
     let log_file_c_str   = CString::new(name.to_owned() + ".log").expect("CString::new failed");
     let log_file_c_ptr   = log_file_c_str.as_ptr();
     let model_name_c_str = CString::new(name).expect("CString::new failed");
@@ -97,6 +99,7 @@ impl GurobiOptimizer {
       let coeff = is_objective as i8 as f64;
       GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, ptr::null());
     }
+    self.vars.push(self.var_index);
     self.var_index += 1;
     return self.var_index - 1; // return newly created index.
   }
