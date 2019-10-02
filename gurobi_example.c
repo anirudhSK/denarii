@@ -100,14 +100,23 @@ main(int   argc,
   error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
   if (error) goto QUIT;
 
-  error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, 3, sol);
+  double x = 0.0;
+  error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, 0, &x);
+  if (error) goto QUIT;
+
+  double y = 0.0;
+  error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, 1, &y);
+  if (error) goto QUIT;
+
+  double z = 0.0;
+  error = GRBgetdblattrelement(model, GRB_DBL_ATTR_X, 2, &z);
   if (error) goto QUIT;
 
   printf("\nOptimization complete\n");
   if (optimstatus == GRB_OPTIMAL) {
     printf("Optimal objective: %.4e\n", objval);
 
-    printf("  x=%.0f, y=%.0f, z=%.0f\n", sol[0], sol[1], sol[2]);
+    printf("  x=%.0f, y=%.0f, z=%.0f\n", x, y, z);
   } else if (optimstatus == GRB_INF_OR_UNBD) {
     printf("Model is infeasible or unbounded\n");
   } else {
@@ -118,7 +127,7 @@ QUIT:
 
   /* Error reporting */
 
-  if (error) {
+  if (error != 0) {
     printf("ERROR: %s\n", GRBgeterrormsg(env));
     exit(1);
   }
