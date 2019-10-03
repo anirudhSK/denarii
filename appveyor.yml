@@ -7,6 +7,8 @@ branches:
 skip_branch_with_pr: true
 install:
 - sh: >-
+    set -e
+
     curl https://sh.rustup.rs -sSf > /tmp/sh.rustup.rs
 
     sh /tmp/sh.rustup.rs -y
@@ -19,6 +21,8 @@ install:
 
 build_script:
 - sh: >-
+    set -e
+
     cargo build
 
     cargo run --bin denarii 10 10
