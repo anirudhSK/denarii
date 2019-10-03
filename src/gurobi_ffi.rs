@@ -111,16 +111,14 @@ impl GurobiOptimizer {
   pub fn add_constraint(&mut self,
                         lhs_vars   : &Vec<(GurobiVar)>,
                         lhs_coeffs : &Vec<f64>,
-                        sense : c_char,
-                        rhs : f64,
-                        constraint_name : &str) {
+                        sense : char,
+                        rhs : f64) {
+    let sense = sense as c_char;
     assert!(['<' as c_char, '>' as c_char, '=' as c_char].contains(&sense));
-    let constraint_name_c_str = CString::new(constraint_name).expect("CString::new failed");
-    let constraint_name_c_ptr = constraint_name_c_str.as_ptr();
     assert!(lhs_vars.len() == lhs_coeffs.len());
     unsafe {
       gurobi_try!(GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
-                               lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr),
+                               lhs_coeffs.as_ptr(), sense, rhs, ptr::null()),
                   self.env);
     }
   }
@@ -167,9 +165,9 @@ mod tests {
     let y = optimizer.add_var('B', false);
     let z = optimizer.add_var('B', false);
     let obj = optimizer.add_var('I', true);
-    optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
-    optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
-    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+    optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=', 0.0);
+    optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<', 4.0);
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>', 1.0);
     optimizer.optimize("max");
     assert!(*optimizer.solutions.get(&x).unwrap() == 1.0);
     assert!(*optimizer.solutions.get(&y).unwrap() == 0.0);
@@ -182,9 +180,9 @@ mod tests {
     let x = optimizer.add_var('I', false);
     let y = optimizer.add_var('I', false);
     let obj = optimizer.add_var('I', true);
-    optimizer.add_constraint(&vec![x, y], &vec![1.0, -1.0], '=' as c_char, 0.0, "c1");
-    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '=' as c_char, 4.0, "c2");
-    optimizer.add_constraint(&vec![x, y, obj], &vec![1.0, 1.0, -1.0], '=' as c_char, 0.0, "c3");
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, -1.0], '=', 0.0);
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '=', 4.0);
+    optimizer.add_constraint(&vec![x, y, obj], &vec![1.0, 1.0, -1.0], '=', 0.0);
     optimizer.optimize("max");
     assert!(*optimizer.solutions.get(&x).unwrap() == 2.0);
     assert!(*optimizer.solutions.get(&y).unwrap() == 2.0);
@@ -196,12 +194,12 @@ mod tests {
     let x = optimizer.add_var('I', false);
     let y = optimizer.add_var('I', false);
     let obj = optimizer.add_var('I', true);
-    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '<' as c_char, 16.0, "c1");
-    optimizer.add_constraint(&vec![x, y], &vec![1.0, 3.0], '<' as c_char, 36.0, "c2");
-    optimizer.add_constraint(&vec![x], &vec![1.0], '<' as c_char, 10.0, "c3");
-    optimizer.add_constraint(&vec![x], &vec![1.0], '>' as c_char, 0.0, "c4");
-    optimizer.add_constraint(&vec![y], &vec![1.0], '>' as c_char, 0.0, "c5");
-    optimizer.add_constraint(&vec![x, y, obj], &vec![12.0, 40.0, -1.0], '=' as c_char, 0.0, "c6");
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '<', 16.0);
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, 3.0], '<', 36.0);
+    optimizer.add_constraint(&vec![x], &vec![1.0], '<', 10.0);
+    optimizer.add_constraint(&vec![x], &vec![1.0], '>', 0.0);
+    optimizer.add_constraint(&vec![y], &vec![1.0], '>', 0.0);
+    optimizer.add_constraint(&vec![x, y, obj], &vec![12.0, 40.0, -1.0], '=', 0.0);
     optimizer.optimize("max");
     assert!(*optimizer.solutions.get(&x).unwrap() == 0.0);
     assert!(*optimizer.solutions.get(&y).unwrap() == 12.0);
@@ -214,9 +212,9 @@ fn main() {
   let y = optimizer.add_var('B', false);
   let z = optimizer.add_var('B', false);
   let obj = optimizer.add_var('I', true);
-  optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
-  optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
-  optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+  optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=', 0.0);
+  optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<', 4.0);
+  optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>', 1.0);
   optimizer.optimize("max");
   println!("x={}, y={}, z={}",
             optimizer.solutions.get(&x).unwrap(),
