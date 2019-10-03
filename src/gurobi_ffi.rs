@@ -22,16 +22,6 @@ macro_rules! gurobi_try {
   }
 }
 
-#[repr(C)]
-pub struct GRBsvec {
-  /// sparse vector length
-  pub len: c_int,
-  /// indices array of the sparse vector
-  pub ind: *mut c_int,
-  /// value array of the sparse vector
-  pub val: *mut c_double
-}
-
 extern "C" {
   // Constructors
   pub fn GRBloadenv(envP: *mut *mut GRBenv, logfilename: c_str) -> c_int;
