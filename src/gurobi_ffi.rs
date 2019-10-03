@@ -99,9 +99,10 @@ impl GurobiOptimizer {
     let model_name_c_str = CString::new(name).expect("CString::new failed");
     let model_name_c_ptr = model_name_c_str.as_ptr();
     unsafe {
-      GRBloadenv(&mut optimizer.env, log_file_c_ptr);
-      GRBnewmodel(optimizer.env, &mut optimizer.model, model_name_c_ptr, 0, ptr::null_mut(),
-                  ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut());
+      gurobi_try!(GRBloadenv(&mut optimizer.env, log_file_c_ptr), optimizer.env);
+      gurobi_try!(GRBnewmodel(optimizer.env, &mut optimizer.model, model_name_c_ptr, 0, ptr::null_mut(),
+                              ptr::null_mut(), ptr::null_mut(), ptr::null_mut(), ptr::null_mut()),
+                  optimizer.env);
     }
     return optimizer;
   }
@@ -109,7 +110,9 @@ impl GurobiOptimizer {
     assert!(['C', 'B', 'I'].contains(&var_type), "var_type must be C (real), B (binary), or I (integer)");
     unsafe {
       let coeff = is_objective as i8 as f64;
-      GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff, 0.0, 1e100, var_type as i8, ptr::null());
+      gurobi_try!(GRBaddvar(self.model, 0, ptr::null_mut(), ptr::null_mut(), coeff,
+                            0.0, 1e100, var_type as i8, ptr::null()),
+                  self.env);
     }
     self.vars.push(self.var_index);
     self.var_index += 1;
@@ -126,8 +129,9 @@ impl GurobiOptimizer {
     let constraint_name_c_ptr = constraint_name_c_str.as_ptr();
     assert!(lhs_vars.len() == lhs_coeffs.len());
     unsafe {
-      GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
-                   lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr);
+      gurobi_try!(GRBaddconstr(self.model, lhs_vars.len().try_into().unwrap(), lhs_vars.as_ptr(),
+                               lhs_coeffs.as_ptr(), sense, rhs, constraint_name_c_ptr),
+                  self.env);
     }
   }
   pub fn optimize(&mut self, sense : &str) {
@@ -136,11 +140,11 @@ impl GurobiOptimizer {
     let model_sense_c_str = CString::new("ModelSense").expect("CString::new failed");
     let model_sense_c_ptr  = model_sense_c_str.as_ptr();
     unsafe {
-      GRBsetintattr(self.model, model_sense_c_ptr, sense_int);
-      GRBoptimize(self.model);
-      for var in self.vars.clone() {
-        self.solutions.insert(var.to_owned(), self.get_solution(&var));
-      }
+      gurobi_try!(GRBsetintattr(self.model, model_sense_c_ptr, sense_int), self.env);
+      gurobi_try!(GRBoptimize(self.model), self.env);
+    }
+    for var in self.vars.clone() {
+      self.solutions.insert(var.to_owned(), self.get_solution(&var));
     }
   }
   fn get_solution(&self, var : &GurobiVar) -> f64 {
