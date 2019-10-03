@@ -7,3 +7,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rand = "0.7.2"
+gurobi = "0.3.3"
+
+[[bin]]
+name = "gurobi_ffi"
+path = "src/gurobi_ffi.rs"

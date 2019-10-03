@@ -1,5 +1,6 @@
 version: 1.0.{build}
-image: Ubuntu1604
+image: Linux
+build_cloud: anirudh-OptiPlex-7050
 branches:
   # whitelist
   only:
@@ -7,6 +8,8 @@ branches:
 skip_branch_with_pr: true
 install:
 - sh: >-
+    set -e
+
     curl https://sh.rustup.rs -sSf > /tmp/sh.rustup.rs
 
     sh /tmp/sh.rustup.rs -y
@@ -19,8 +22,22 @@ install:
 
 build_script:
 - sh: >-
+    set -e
+
+    export GUROBI_HOME="/opt/gurobi811/linux64"
+
+    export PATH=$GUROBI_HOME/bin:$PATH
+
+    export LD_LIBRARY_PATH=$GUROBI_HOME/lib
+
+    export RUST_BACKTRACE=1
+
     cargo build
 
-    cargo run
+    cargo run --bin denarii 10 10
+
+    cargo run --bin gurobi_ffi
+
+    cargo test
 
     echo "********ALL DONE*******"
