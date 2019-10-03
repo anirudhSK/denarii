@@ -26,6 +26,8 @@ build_script:
 
     export GUROBI_HOME="/opt/gurobi811/linux64"
 
+    export RUST_BACKTRACE=1
+
     cargo build
 
     cargo run --bin denarii 10 10
