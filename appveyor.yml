@@ -1,5 +1,6 @@
 version: 1.0.{build}
-image: Ubuntu1604
+image: Linux
+build_cloud: anirudh-OptiPlex-7050
 branches:
   # whitelist
   only:
