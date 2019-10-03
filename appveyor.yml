@@ -21,6 +21,10 @@ build_script:
 - sh: >-
     cargo build
 
-    cargo run
+    cargo run --bin denarii 10 10
+
+    cargo run --bin gurobi_ffi
+
+    cargo test
 
     echo "********ALL DONE*******"
