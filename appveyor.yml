@@ -24,6 +24,8 @@ build_script:
 - sh: >-
     set -e
 
+    export GUROBI_HOME="/opt/gurobi811/linux64"
+
     cargo build
 
     cargo run --bin denarii 10 10
