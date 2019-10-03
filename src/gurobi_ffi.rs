@@ -157,6 +157,26 @@ impl Drop for GurobiOptimizer {
   }
 }
 
+#[cfg(test)]
+mod tests {
+  use super::*;
+  #[test]
+  fn test_mip1() {
+    let mut optimizer = GurobiOptimizer::new("mip1");
+    let x = optimizer.add_var('B', false);
+    let y = optimizer.add_var('B', false);
+    let z = optimizer.add_var('B', false);
+    let obj = optimizer.add_var('I', true);
+    optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=' as c_char, 0.0, "cequal");
+    optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<' as c_char, 4.0, "c0");
+    optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>' as c_char, 1.0, "c1");
+    optimizer.optimize("max");
+    assert!(*optimizer.solutions.get(&x).unwrap() == 1.0);
+    assert!(*optimizer.solutions.get(&y).unwrap() == 0.0);
+    assert!(*optimizer.solutions.get(&z).unwrap() == 1.0);
+  }
+}
+
 fn main() {
   let mut optimizer = GurobiOptimizer::new("mip1");
   let x = optimizer.add_var('B', false);
