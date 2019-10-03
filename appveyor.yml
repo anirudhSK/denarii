@@ -26,6 +26,10 @@ build_script:
 
     export GUROBI_HOME="/opt/gurobi811/linux64"
 
+    export PATH=$GUROBI_HOME/bin:$PATH
+
+    export LD_LIBRARY_PATH=$GUROBI_HOME/lib
+
     export RUST_BACKTRACE=1
 
     cargo build
