@@ -13,6 +13,15 @@ pub enum GRBenv {}
 
 pub enum GRBmodel {}
 
+macro_rules! gurobi_try {
+  ($expression:expr, $env:expr) => {
+    let error = $expression;
+    if error != 0 {
+      panic!("error is {}", CStr::from_ptr(GRBgeterrormsg($env)).to_str().unwrap());
+    }
+  }
+}
+
 #[repr(C)]
 pub struct GRBsvec {
   /// sparse vector length
@@ -138,10 +147,7 @@ impl GurobiOptimizer {
     let x_str = CString::new("X").expect("CString::new failed");
     let mut x : f64 = 0.0;
     unsafe {
-      let error : i32 = GRBgetdblattrelement(self.model, x_str.as_ptr(), *var, &mut x as *mut f64);
-      if error != 0 {
-        panic!("error is {}", CStr::from_ptr(GRBgeterrormsg(self.env)).to_str().unwrap());
-      }
+      gurobi_try!(GRBgetdblattrelement(self.model, x_str.as_ptr(), *var, &mut x as *mut f64), self.env);
     }
     return x;
   }
