@@ -2,6 +2,14 @@ extern crate rand;
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use std::env;
+struct Package {
+  cpu : u8,
+  mem : u8,
+  net : u8,
+}
+struct CombinatorialBid {
+  bids : Vec<(Package, u32)>
+}
 fn main() {
   let args : Vec<String> = env::args().collect();
   let seed : u64 = args[1].parse::<u64>().unwrap();
