@@ -2,17 +2,26 @@ extern crate rand;
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use std::env;
+
 struct Package {
   cpu : u8,
   mem : u8,
   net : u8,
 }
 
-type Bid = Vec<(Package, Option<u32>)>;
+type Valuation = Vec<(Package, Option<u32>)>;
 
-fn generate_random_bid(&mut StdRng) -> u32 {
-  let mut vec_length = 0;   // TODO: Generate random bid length
-  let mut bid = Vec::new(); // TODO: Generate random bids
+// Use definition of AgentType from Parkes and Singh, 2003
+// "An MDP-Based Approach to Online Mechanism Design"
+struct AgentType {
+  arrival   : u16,
+  departure : u16,
+  valuation : Valuation
+}
+
+fn generate_random_agent_type(rng : &mut StdRng) -> AgentType {
+  // TODO: implement
+  return AgentType{arrival : 0, departure : 0, valuation : Valuation::new()};
 }
 
 fn main() {
