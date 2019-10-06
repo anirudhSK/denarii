@@ -7,9 +7,14 @@ struct Package {
   mem : u8,
   net : u8,
 }
-struct CombinatorialBid {
-  bids : Vec<(Package, u32)>
+
+type Bid = Vec<(Package, Option<u32>)>;
+
+fn generate_random_bid(&mut StdRng) -> u32 {
+  let mut vec_length = 0;   // TODO: Generate random bid length
+  let mut bid = Vec::new(); // TODO: Generate random bids
 }
+
 fn main() {
   let args : Vec<String> = env::args().collect();
   let seed : u64 = args[1].parse::<u64>().unwrap();
