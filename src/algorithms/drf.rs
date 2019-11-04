@@ -39,7 +39,7 @@
  *
  */
 
-fn drf_alloc(resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64> {
+fn allocate(resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64> {
     return vec![3.0, 2.0];
 }
 
@@ -50,7 +50,7 @@ mod tests {
     fn simple_example() {
         let resources = vec![9.0, 18.0];
         let demands = vec![vec![1.0, 4.0], vec![3.0, 1.0]];
-        let alloc = drf_alloc(resources, demands);
+        let alloc = allocate(resources, demands);
 
         assert_eq!(alloc, [3.0, 2.0]);
     }

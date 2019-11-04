@@ -1,4 +1,5 @@
 extern crate rand;
+pub mod algorithms; // Figure out a better way to include this module in the crate.
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use std::env;
