@@ -1,5 +1,28 @@
+use crate::gurobi::ffi::GurobiOptimizer;
+use float_cmp::approx_eq;
+
 fn allocate(resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64> {
-    return vec![4.1, 1.6];
+    let mut optimizer = GurobiOptimizer::new("mip1");
+    let x = optimizer.add_var('C', true);
+    let y = optimizer.add_var('C', true);
+    optimizer.add_constraint(
+        &vec![x, y],
+        &vec![demands[0][0], demands[1][0]],
+        '<',
+        resources[0],
+    );
+    optimizer.add_constraint(
+        &vec![x, y],
+        &vec![demands[0][1], demands[1][1]],
+        '<',
+        resources[1],
+    );
+    optimizer.optimize("max");
+
+    return vec![
+        *optimizer.solutions.get(&x).unwrap(),
+        *optimizer.solutions.get(&y).unwrap(),
+    ];
 }
 
 #[cfg(test)]
@@ -11,6 +34,12 @@ mod tests {
         let demands = vec![vec![1.0, 4.0], vec![3.0, 1.0]];
         let alloc = allocate(resources, demands);
 
-        assert_eq!(alloc, [4.1, 1.6]);
+        let expected_alloc = [4.1, 1.6];
+
+        assert_eq!(alloc.len(), expected_alloc.len());
+
+        for i in 0..alloc.len() {
+            approx_eq!(f64, alloc[i], expected_alloc[i]);
+        }
     }
 }
