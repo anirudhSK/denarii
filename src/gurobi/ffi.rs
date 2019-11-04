@@ -69,12 +69,12 @@ extern "C" {
   pub fn GRBwrite(model: *mut GRBmodel, filename: c_str) -> c_int;
 }
 
-struct GurobiOptimizer {
+pub struct GurobiOptimizer {
   env   : *mut GRBenv,
   model : *mut GRBmodel,
   var_index : i32,
   vars  : Vec<GurobiVar>,
-  solutions : HashMap<GurobiVar, f64>
+  pub solutions : HashMap<GurobiVar, f64>
 }
 
 impl GurobiOptimizer {
