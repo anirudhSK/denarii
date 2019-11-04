@@ -205,19 +205,3 @@ mod tests {
     assert!(*optimizer.solutions.get(&y).unwrap() == 12.0);
   }
 }
-
-fn main() {
-  let mut optimizer = GurobiOptimizer::new("mip1");
-  let x = optimizer.add_var('B', false);
-  let y = optimizer.add_var('B', false);
-  let z = optimizer.add_var('B', false);
-  let obj = optimizer.add_var('I', true);
-  optimizer.add_constraint(&vec![x, y, z, obj], &vec![1.0, 1.0, 2.0, -1.0], '=', 0.0);
-  optimizer.add_constraint(&vec![x, y, z], &vec![1.0, 2.0, 3.0], '<', 4.0);
-  optimizer.add_constraint(&vec![x, y], &vec![1.0, 1.0], '>', 1.0);
-  optimizer.optimize("max");
-  println!("x={}, y={}, z={}",
-            optimizer.solutions.get(&x).unwrap(),
-            optimizer.solutions.get(&y).unwrap(),
-            optimizer.solutions.get(&z).unwrap());
-}

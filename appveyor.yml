@@ -36,8 +36,6 @@ build_script:
 
     cargo run --bin denarii 10 10
 
-    cargo run --bin gurobi_ffi
-
     cargo test
 
     echo "********ALL DONE*******"
