@@ -9,7 +9,4 @@ edition = "2018"
 [dependencies]
 rand = "0.7.2"
 gurobi = "0.3.3"
-
-[[bin]]
-name = "gurobi_ffi"
-path = "src/gurobi_ffi.rs"
+float-cmp = "0.5.3"

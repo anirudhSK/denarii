@@ -1,4 +1,6 @@
 extern crate rand;
+mod algorithms;
+mod gurobi;
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 use std::env;
