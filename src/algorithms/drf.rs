@@ -2,6 +2,12 @@ use crate::gurobi::ffi::GurobiOptimizer;
 use float_cmp::approx_eq;
 
 fn allocate(resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64> {
+    // TODO: Current handles only 2 resources and 2 demands; need to generalize
+    assert!(demands.len() == 2);
+    assert!(demands[0].len() == 2);
+    assert!(demands[1].len() == 2);
+    assert!(resources.len() == 2);
+
     let mut optimizer = GurobiOptimizer::new("mip1");
     let x = optimizer.add_var('C', true);
     let y = optimizer.add_var('C', true);
@@ -17,7 +23,6 @@ fn allocate(resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64> {
         '<',
         resources[1],
     );
-    // TODO: Express constants here using resources and demands vectors.
     optimizer.add_constraint(&vec![x, y], &vec![2.0 / 9.0, -1.0 / 3.0], '=', 0.0);
     optimizer.optimize("max");
 
