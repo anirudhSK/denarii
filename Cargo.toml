@@ -11,3 +11,6 @@ rand = "0.7.2"
 gurobi = "0.3.3"
 float-cmp = "0.5.3"
 clap = "~2.27.0"
+
+[dev-dependencies]
+rusty-hook = "^0.10.1"
