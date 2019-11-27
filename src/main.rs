@@ -1,5 +1,6 @@
 mod algorithms;
 mod gurobi;
+mod simulator;
 
 extern crate clap;
 
