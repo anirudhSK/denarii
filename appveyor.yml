@@ -34,7 +34,7 @@ build_script:
 
     cargo build
 
-    cargo run --bin denarii 10 10
+    cargo run --bin denarii
 
     cargo test
 
