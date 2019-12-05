@@ -18,30 +18,38 @@ fn main() {
     let matches = App::new("Denarii")
         .version("0.1.0")
         .author("Taegyun Kim <k.taegyun@gmail.com>")
-        .about("Packet based network device resource allocation simualtor.")
+        .about("Discrete time based simulator for resource allocation in packet based network ddevices.")
+        .arg(
+            Arg::with_name("ticks")
+                .short("t")
+                .long("ticks")
+                .default_value("10")
+                .help("The number of ticks to run the simulator."),
+        )
         .arg(
             Arg::with_name("seed")
                 .short("s")
                 .long("seed")
-                .takes_value(true)
+                .default_value("1")
                 .help("Random seed"),
         )
         .get_matches();
 
-    let seed: u64 = matches
-        .value_of("seed")
-        .unwrap_or("1")
-        .parse::<u64>()
-        .unwrap();
+    let seed: u64 = matches.value_of("seed").unwrap().parse::<u64>().unwrap();
     let mut rng: StdRng = SeedableRng::seed_from_u64(seed);
 
     let num_resources: u64 = 2;
-    for x in 0..100 {
+    for x in 0..10 {
         // Generate random demand vectors
         let mut vec: Vec<i16> = Vec::new();
         for _y in 0..num_resources {
             vec.push(rng.gen_range(0, 1000));
         }
         println!("Hello, world {}, random vector: {:?}!", x, vec);
+    }
+
+    let ticks = matches.value_of("ticks").unwrap().parse::<u64>().unwrap();
+    for t in 0..ticks {
+        println!("{}", t);
     }
 }
