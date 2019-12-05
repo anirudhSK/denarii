@@ -5,4 +5,6 @@ mod asset_fairness;
 mod ceei;
 mod drf;
 
-trait Algorithm {}
+pub trait Algorithm {
+    fn allocate(&self, resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64>;
+}
