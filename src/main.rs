@@ -5,6 +5,7 @@ mod simulator;
 extern crate clap;
 
 use clap::{App, Arg};
+use rand::distributions::{Bernoulli, Distribution};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
@@ -23,7 +24,7 @@ fn main() {
             Arg::with_name("ticks")
                 .short("t")
                 .long("ticks")
-                .default_value("10")
+                .default_value("100")
                 .help("The number of ticks to run the simulator."),
         )
         .arg(
@@ -38,18 +39,18 @@ fn main() {
     let seed: u64 = matches.value_of("seed").unwrap().parse::<u64>().unwrap();
     let mut rng: StdRng = SeedableRng::seed_from_u64(seed);
 
-    let num_resources: u64 = 2;
-    for x in 0..10 {
-        // Generate random demand vectors
-        let mut vec: Vec<i16> = Vec::new();
-        for _y in 0..num_resources {
-            vec.push(rng.gen_range(0, 1000));
+    let ticks = matches.value_of("ticks").unwrap().parse::<u64>().unwrap();
+
+    let p = 0.3;
+    let dist = Bernoulli::new(p).unwrap();
+    let mut cnt = 0;
+    for t in 0..ticks {
+        let value = dist.sample(&mut rng);
+        if value {
+            println!("{}: new packet arrived", t);
+            cnt += 1;
         }
-        println!("Hello, world {}, random vector: {:?}!", x, vec);
     }
 
-    let ticks = matches.value_of("ticks").unwrap().parse::<u64>().unwrap();
-    for t in 0..ticks {
-        println!("{}", t);
-    }
+    println!("{}: Total number of packets", cnt);
 }
