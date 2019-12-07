@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Packet {
     /// Packet ID
     id: u64,
@@ -17,6 +17,15 @@ pub struct Packet {
 }
 
 impl Packet {
+    pub fn new(id: u64, t: u64, service_time: f64) -> Packet {
+        Packet {
+            id: id,
+            t_arrival: t,
+            expected_service_time: service_time,
+            ..Default::default()
+        }
+    }
+
     pub fn is_completed(&mut self) -> bool {
         return self.service_time > self.expected_service_time;
     }
