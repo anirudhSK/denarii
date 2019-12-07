@@ -11,23 +11,39 @@ pub struct Packet {
     /// Resources actually allocated, empty if none.
     resource_alloc: Vec<f64>,
     /// Number of ticks it needs to complete, given requested resources.
-    expected_service_time: f64,
-    /// Actual service time it has gotten so far.
     service_time: f64,
+    /// Actual service time it has gotten so far.
+    adjusted_service_time: f64,
 }
 
 impl Packet {
-    pub fn new(id: u64, t: u64, service_time: f64) -> Packet {
+    pub fn new(id: u64, t: u64, service_time: f64, resource_req: Vec<f64>) -> Packet {
         Packet {
             id: id,
             t_arrival: t,
-            expected_service_time: service_time,
+            resource_req: resource_req,
+            service_time: service_time,
             ..Default::default()
         }
     }
 
+    pub fn step(&mut self, t: u64) -> bool {
+        if !self.is_scheduled() {
+            return false;
+        }
+
+        let ratio = self.resource_alloc[0] / self.resource_req[0];
+        self.adjusted_service_time += ratio;
+
+        let done = self.is_completed();
+        if done {
+            self.t_departure = t
+        }
+        return done;
+    }
+
     pub fn is_completed(&mut self) -> bool {
-        return self.service_time > self.expected_service_time;
+        return self.adjusted_service_time > self.service_time;
     }
     pub fn is_scheduled(&mut self) -> bool {
         return self.resource_alloc.len() > 0;
