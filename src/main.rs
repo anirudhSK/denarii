@@ -42,12 +42,18 @@ fn main() {
     let ticks = matches.value_of("ticks").unwrap().parse::<u64>().unwrap();
 
     let p = 0.3;
-    let dist = Bernoulli::new(p).unwrap();
+    // Distribution for packet arrivals.
+    let a_dist = Bernoulli::new(p).unwrap();
+    let num_resources = 2;
     let mut cnt = 0;
     for t in 0..ticks {
-        let value = dist.sample(&mut rng);
+        let value = a_dist.sample(&mut rng);
         if value {
-            println!("{}: new packet arrived", t);
+            let service_time = rng.gen_range(10, 20);
+            let resource_req: Vec<f64> = (0..num_resources)
+                .map(|_| rng.gen_range(1, 11) as f64)
+                .collect();
+            println!("{}, {}, {:?}", t, service_time, resource_req);
             cnt += 1;
         }
     }
