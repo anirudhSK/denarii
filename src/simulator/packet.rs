@@ -1,3 +1,6 @@
+use std::cmp::{Eq, PartialEq};
+use std::hash::{Hash, Hasher};
+
 #[derive(Debug, Default)]
 pub struct Packet {
     /// Packet ID
@@ -57,5 +60,18 @@ impl Packet {
             return 0;
         }
         return self.t_departure - self.t_arrival;
+    }
+}
+
+impl PartialEq for Packet {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+impl Eq for Packet {}
+
+impl Hash for Packet {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
     }
 }
