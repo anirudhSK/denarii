@@ -46,12 +46,12 @@ mod tests {
         let alg = Ceei {};
         let alloc = alg.allocate(&resources, &demands);
 
-        let expected_alloc = [4.1, 1.6];
+        let expected_alloc = [4.09, 1.63];
 
         assert_eq!(alloc.len(), expected_alloc.len());
 
         for i in 0..alloc.len() {
-            approx_eq!(f64, alloc[i], expected_alloc[i]);
+            assert!(approx_eq!(f64, alloc[i], expected_alloc[i], epsilon = 0.01));
         }
     }
 }
