@@ -28,6 +28,7 @@ impl Algorithm for AssetFairness {
             .map(|_| optimizer.add_var('C', true))
             .collect();
 
+        // Add constraint for each type of resources.
         for i in 0..num_resources {
             optimizer.add_constraint(
                 &coeffs,
@@ -37,6 +38,7 @@ impl Algorithm for AssetFairness {
             );
         }
 
+        // Every user spends the same.
         for i in 0..demands.len() - 1 {
             optimizer.add_constraint(
                 &vec![coeffs[i], coeffs[i + 1]],
@@ -73,7 +75,12 @@ mod tests {
         assert_eq!(alloc.len(), expected_alloc.len());
 
         for i in 0..alloc.len() {
-            assert!(approx_eq!(f64, alloc[i], expected_alloc[i], epsilon = 0.01));
+            assert!(
+                approx_eq!(f64, alloc[i], expected_alloc[i], epsilon = 0.01),
+                "{} != {}",
+                alloc[i],
+                expected_alloc[i]
+            );
         }
     }
 
@@ -84,12 +91,15 @@ mod tests {
         let prices = vec![2.0, 1.0];
         let alg = AssetFairness { prices };
         let alloc = alg.allocate(&resources, &demands);
-        println!("{:?}", alloc);
         let expected_alloc = [1.50, 1.29, 0.90];
         assert_eq!(alloc.len(), expected_alloc.len());
         for i in 0..alloc.len() {
-            println!("{}, {}, {}", i, alloc[i], expected_alloc[i]);
-            assert!(approx_eq!(f64, alloc[i], expected_alloc[i], epsilon = 0.01));
+            assert!(
+                approx_eq!(f64, alloc[i], expected_alloc[i], epsilon = 0.01),
+                "{} != {}",
+                alloc[i],
+                expected_alloc[i]
+            );
         }
     }
 }
