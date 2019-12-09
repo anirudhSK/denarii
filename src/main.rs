@@ -4,6 +4,7 @@ mod simulator;
 
 extern crate clap;
 
+use algorithms::Algorithm;
 use clap::{App, Arg};
 use rand::distributions::{Bernoulli, Distribution};
 use rand::rngs::StdRng;
@@ -43,7 +44,8 @@ fn main() {
 
     let ticks = matches.value_of("ticks").unwrap().parse::<u64>().unwrap();
 
-    let mut allocated_pkts: Vec<&mut Packet> = Vec::new();
+    let mut allocated_pkts: Vec<Packet> = Vec::new();
+    // Packets not allocated
     let mut pkts: Vec<Packet> = Vec::new();
 
     let p = 0.3;
@@ -52,7 +54,7 @@ fn main() {
     let num_resources = 2;
 
     let capacity: Vec<f64> = (0..num_resources).map(|x| (x as f64) * 10.0).collect();
-    let mut available: Vec<f64> = capacity;
+    let mut available: Vec<f64> = capacity.clone();
     let mut latencies: Vec<u64> = Vec::new();
 
     let alg = algorithms::Drf {};
@@ -84,7 +86,16 @@ fn main() {
             }
         }
         // Check whether a new allocation needs to happen
-        if add_new_packet || done_pkts > 0 {}
+        if add_new_packet || done_pkts > 0 {
+            let mut requests: Vec<Vec<f64>> = Vec::new();
+            for pkt in &mut pkts {
+                requests.push(pkt.resource_req.clone());
+            }
+
+            let allocs = alg.allocate(&capacity, &requests);
+
+            println!("{:?}", allocs);
+        }
 
         // Run the algorithm
     }

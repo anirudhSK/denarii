@@ -6,5 +6,5 @@ mod ceei;
 mod drf;
 
 pub trait Algorithm {
-    fn allocate(&self, resources: Vec<f64>, demands: Vec<Vec<f64>>) -> Vec<f64>;
+    fn allocate(&self, resources: &Vec<f64>, demands: &Vec<Vec<f64>>) -> Vec<f64>;
 }

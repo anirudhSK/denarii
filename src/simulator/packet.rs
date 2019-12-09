@@ -10,7 +10,7 @@ pub struct Packet {
     /// Time t, the packet left the hardware
     t_departure: u64,
     /// Resources requested
-    resource_req: Vec<f64>,
+    pub resource_req: Vec<f64>,
     /// Resources actually allocated, empty if none.
     resource_alloc: Vec<f64>,
     /// Number of ticks it needs to complete, given requested resources.
