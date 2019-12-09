@@ -7,7 +7,7 @@ use std::ffi::CStr;
 use std::ffi::CString;
 use std::ptr;
 
-type GurobiVar = i32;
+pub type GurobiVar = i32;
 
 pub enum GRBenv {}
 
