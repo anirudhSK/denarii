@@ -24,7 +24,7 @@ build_script:
 - sh: >-
     set -e
 
-    export GUROBI_HOME="/opt/gurobi811/linux64"
+    export GUROBI_HOME="/opt/gurobi900/linux64"
 
     export PATH=$GUROBI_HOME/bin:$PATH
 
